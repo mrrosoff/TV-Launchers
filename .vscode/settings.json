@@ -1,0 +1,10 @@
+{
+    "files.exclude": {
+        "launcher/build": true,
+        "launcher/.gradle": true,
+        "launcher/.kotlin": true,
+        "tools/venv": true,
+        "**/__pycache__": true
+    },
+    "java.configuration.updateBuildConfiguration": "automatic"
+}

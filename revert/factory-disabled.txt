@@ -1,0 +1,3 @@
+com.sony.dtv.promos
+com.sony.dtv.b2b.vendorprotocol
+com.sony.dtv.b2b.softap

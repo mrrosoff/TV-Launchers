@@ -1,0 +1,7 @@
+<resources>
+    <color name="text">#FFFFFFFF</color>
+    <color name="text_faint">#99FFFFFF</color>
+    <color name="accent">#FFE8DCC8</color>
+    <color name="pill">#26FFFFFF</color>
+    <color name="panel">#F7121214</color>
+</resources>

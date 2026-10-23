@@ -1,0 +1,8 @@
+<resources>
+    <declare-styleable name="DotTextView">
+        <attr name="dotText" format="string" />
+        <attr name="dotPitch" format="dimension" />
+        <attr name="dotColor" format="color" />
+        <attr name="dotShowUnlit" format="boolean" />
+    </declare-styleable>
+</resources>

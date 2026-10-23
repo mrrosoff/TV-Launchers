@@ -1,0 +1,29 @@
+<resources>
+    <string name="app_name">BraviaTV Home</string>
+    <string name="settings">Settings</string>
+    <string name="live_tv">Live TV</string>
+    <string name="connected">Connected</string>
+    <string name="no_inputs">No inputs found</string>
+    <string name="good_morning">Good morning</string>
+    <string name="good_afternoon">Good afternoon</string>
+    <string name="good_evening">Good evening</string>
+    <string name="good_night">Good night</string>
+    <string name="wifi_bars">Wi-Fi, %1$d of 4 bars</string>
+    <string name="network">Network</string>
+    <string name="ethernet">Ethernet</string>
+    <string name="offline">Offline</string>
+    <string name="key_service_label">BraviaTV Home remote buttons</string>
+    <string name="key_service_description">While Home is on screen, the remote\'s Input button opens Home\'s Inputs menu and the Settings button opens Settings. It reads no screen content.</string>
+    <string name="home_settings">Home screen</string>
+    <string name="shown">Shown</string>
+    <string name="hidden">Hidden</string>
+    <string name="on">On</string>
+    <string name="off">Off</string>
+    <string name="theme">Theme</string>
+    <string name="theme_auto">By date</string>
+    <string name="pixel_shift">Burn-in care (pixel shift)</string>
+    <string name="input_key">Input button: Home inputs</string>
+    <string name="settings_key">Gear button: Settings</string>
+    <string name="default_home">Default home app</string>
+    <string name="apps_header">Apps in the list</string>
+</resources>

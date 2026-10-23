@@ -1,0 +1,57 @@
+# Sony BRAVIA 4K VH2 (device BRAVIA_VH2), US firmware
+# Android 12 (Google TV, API 31), build BRAVIA_VH2_M_UC-user 12 STT2.230505.001.S136 682241
+#
+# Apply:   TV_HOST=<tv ip> tools/disable.sh debloat.txt
+# Undo:    TV_HOST=<tv ip> ./restore.sh
+# Everything is DISABLED, not uninstalled. Comment out any line you want to keep.
+#
+# Stock launcher: com.google.android.apps.tv.launcherx (disabled by launcher/build-and-install.sh, not here).
+# Live TV / tuner app: com.sony.dtv.tvx (live_tv_package in the launcher's config.xml, hidden from the grid).
+# Kept on purpose: com.sony.dtv.tvinput.*, braviasync*, tvapi, sonysystemservice, imeproxy, settingsprovider,
+# all com.mediatek.*, systemupdate/update (firmware), Play Store, Play Services, the keyboard.
+# Kept by owner's choice: voice assistant (katniss, voicesearch, assistantadapter), Chromecast built-in
+# (mediashell), AirPlay/HomeKit (airplayapp, homekit), firmware updates, and Netflix, YouTube, Prime Video,
+# Disney+, Apple TV, Hulu, Max, Peacock, Paramount+, Spotify.
+# Already disabled at the factory: com.sony.dtv.promos, com.sony.dtv.b2b.vendorprotocol, com.sony.dtv.b2b.softap.
+# Rebooted once afterwards: nothing was re-enabled by the firmware.
+
+# ACR viewing tracker
+tv.samba.ssm                                   # Samba TV fingerprints what's on screen
+tv.samba.ssm.ui
+
+# telemetry and remote support
+com.qterics.da.product
+com.sony.dtv.da.service
+com.sonyericsson.idd.agent
+com.sony.dtv.sonybugreportsys
+com.google.android.feedback
+
+# demo / shop mode
+com.sony.dtv.demosupport
+com.sony.dtv.demosystemsupport
+com.sony.dtv.multiscreendemo
+
+# help tiles and Sony promotions
+com.sony.dtv.customersupport                   # Help tile
+com.sony.dtv.smarthelp
+com.sony.dtv.sonyselect                        # Sony app/promo recommendations
+com.sony.dtv.sonytab                           # "Sony" tab on the Google TV home screen
+
+# streaming apps not used
+com.google.android.youtube.tvunplugged         # YouTube TV
+com.espn.score_center
+
+# preloads not used
+com.tubitv
+com.xumo.xumo.tv
+air.com.vudu.air.DownloaderTablet
+com.tiktok.tv
+com.google.android.youtube.tvkids
+com.sonypicturescore                           # BRAVIA CORE
+com.google.android.videos                      # Google TV / Play Movies
+com.google.android.youtube.tvmusic
+com.google.android.play.games
+
+# Google TV setup wizard: claims HOME once the stock launcher is disabled.
+# Disabling it deletes any Wi-Fi network it saved during first setup (check: dumpsys wifi | grep cname=).
+com.google.android.tungsten.setupwraith

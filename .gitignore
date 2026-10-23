@@ -1,0 +1,13 @@
+# ADB key, Python venv, and the snapshot of the TV's original state (it holds the serial number): never commit
+tools/adbkey/
+tools/venv/
+tools/__pycache__/
+revert/original-state/
+# names and birthdays
+launcher/personal.properties
+# build output
+launcher/build/
+launcher/.gradle/
+launcher/.kotlin/
+launcher/local.properties
+.DS_Store
