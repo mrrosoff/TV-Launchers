@@ -56,8 +56,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:dotColor="@color/text_faint"
-            app:dotPitch="2.4dp"
-            app:dotShowUnlit="false" />
+            app:dotPitch="2.4dp" />
 
         <dev.mrrosoff.braviatv.dots.DotTextView
             android:id="@+id/clock"
@@ -73,8 +72,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
             app:dotColor="@color/text_faint"
-            app:dotPitch="2.4dp"
-            app:dotShowUnlit="false" />
+            app:dotPitch="2.4dp" />
 
         <LinearLayout
             android:id="@+id/weather"
@@ -105,8 +103,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             app:dotColor="@color/text_faint"
-            app:dotPitch="1.8dp"
-            app:dotShowUnlit="false" />
+            app:dotPitch="1.8dp" />
     </LinearLayout>
 
     <LinearLayout

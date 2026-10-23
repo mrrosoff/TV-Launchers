@@ -53,9 +53,7 @@ class InfoPanel(
 
     init {
         weatherIcon.pitch = activity.dp(3.2f)
-        weatherIcon.showGrid = true
         emblem.pitch = activity.dp(3.6f)
-        emblem.showGrid = true
         greeting.colors = null
     }
 

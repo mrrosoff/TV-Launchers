@@ -12,10 +12,7 @@ import dev.mrrosoff.braviatv.R
 import kotlin.math.max
 import kotlin.math.min
 
-/**
- * Text drawn as an LED dot matrix in [DotFont]. Lit dots take [color]; with [showUnlit] the rest of
- * each glyph cell glows faintly in the same colour, like an unlit panel.
- */
+/** Text drawn as an LED dot matrix in [DotFont], in [color]; only lit dots are drawn. */
 class DotTextView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
@@ -54,17 +51,7 @@ class DotTextView @JvmOverloads constructor(
             refreshDrawableState()
         }
 
-    var showUnlit = true
-        set(value) {
-            field = value
-            invalidate()
-        }
-
-    /** Opacity of unlit dots relative to [color]. */
-    var unlitAlpha = 0.1f
-
-    private val lit = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val unlit = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
 
     init {
         context.obtainStyledAttributes(attrs, R.styleable.DotTextView).apply {
@@ -72,7 +59,6 @@ class DotTextView @JvmOverloads constructor(
             pitch = getDimension(R.styleable.DotTextView_dotPitch, pitch)
             colors = getColorStateList(R.styleable.DotTextView_dotColor)
             color = colors?.defaultColor ?: color
-            showUnlit = getBoolean(R.styleable.DotTextView_dotShowUnlit, showUnlit)
             recycle()
         }
     }
@@ -94,9 +80,7 @@ class DotTextView @JvmOverloads constructor(
     override fun onDraw(canvas: Canvas) {
         if (text.isEmpty()) return
         val radius = pitch * 0.36f
-        lit.color = color
-        unlit.color = color
-        unlit.alpha = (Color.alpha(color) * unlitAlpha).toInt()
+        paint.color = color
         // Centre vertically; text wider than the view is cut, never squeezed.
         val top = paddingTop + max(0f, (height - paddingTop - paddingBottom - DotFont.ROWS * pitch) / 2f)
         var x0 = paddingLeft.toFloat()
@@ -112,9 +96,7 @@ class DotTextView @JvmOverloads constructor(
                 val bits = rows[r]
                 val cy = top + (r + 0.5f) * pitch
                 for (c in 0 until DotFont.COLS) {
-                    val on = (bits shr (DotFont.COLS - 1 - c)) and 1 == 1
-                    if (!on && !showUnlit) continue
-                    canvas.drawCircle(x0 + (c + 0.5f) * pitch, cy, if (on) radius else radius * 0.7f, if (on) lit else unlit)
+                    if ((bits shr (DotFont.COLS - 1 - c)) and 1 == 1) canvas.drawCircle(x0 + (c + 0.5f) * pitch, cy, radius, paint)
                 }
             }
             x0 += DotFont.ADVANCE * pitch

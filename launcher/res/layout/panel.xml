@@ -25,8 +25,7 @@
             android:paddingTop="10dp"
             android:paddingBottom="8dp"
             app:dotColor="@color/text_faint"
-            app:dotPitch="1.6dp"
-            app:dotShowUnlit="false" />
+            app:dotPitch="1.6dp" />
 
         <ScrollView
             android:id="@+id/panel_scroll"

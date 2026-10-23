@@ -30,7 +30,6 @@ object MenuRows {
             text = label
             pitch = dp(activity, 2f).toFloat()
             this.colors = colors
-            showUnlit = false
             layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
             isDuplicateParentStateEnabled = true
         })
@@ -39,7 +38,6 @@ object MenuRows {
             text = detail.orEmpty()
             pitch = dp(activity, 1.6f).toFloat()
             this.colors = colors
-            showUnlit = false
             alpha = 0.6f
             isDuplicateParentStateEnabled = true
         })

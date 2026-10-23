@@ -77,7 +77,6 @@ class HomeSettingsActivity : Activity() {
         this.text = text
         pitch = MenuRows.dp(this@HomeSettingsActivity, 1.6f).toFloat()
         color = getColor(R.color.text_faint)
-        showUnlit = false
         val pad = MenuRows.dp(this@HomeSettingsActivity, 14f)
         setPadding(pad, pad, pad, MenuRows.dp(this@HomeSettingsActivity, 8f))
     }

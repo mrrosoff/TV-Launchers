@@ -1,10 +1,6 @@
 package dev.mrrosoff.braviatv.home
 
-import android.animation.ArgbEvaluator
-import android.animation.ValueAnimator
 import android.content.Context
-import android.graphics.Canvas
-import android.graphics.Paint
 import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.KeyEvent
@@ -41,27 +37,17 @@ class WheelView @JvmOverloads constructor(
     private var colors: IntArray = IntArray(0)
     private val rows = ArrayList<DotTextView>()
     private val ease = PathInterpolator(.2f, .7f, .2f, 1f)
-    private val argb = ArgbEvaluator()
 
     private val spacing = dp(66f)
     private val maxPitch = dp(7f)
     private val arc = dp(9f)
-    private val cursorRadius = dp(5f)
-    private val haloRadius = cursorRadius * 2.6f
-    /** The halo's full width plus a margin, so it is never cut off at the view's edge. */
-    private val cursorX = haloRadius + dp(3f)
-    private val textStart = cursorX + haloRadius + dp(10f)
-
-    private val cursorPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-    private var cursorColor = 0xFFFFFFFF.toInt()
-    private var cursorAnim: ValueAnimator? = null
+    private val textStart = dp(12f)
 
     init {
         isFocusable = true
         isFocusableInTouchMode = false
         clipChildren = false
         clipToPadding = false
-        setWillNotDraw(false)
         defaultFocusHighlightEnabled = false
     }
 
@@ -113,7 +99,6 @@ class WheelView @JvmOverloads constructor(
             // Long names get smaller dots rather than being cut.
             tv.pitch = min(maxPitch, room / max(1, tv.text.length * DotFont.ADVANCE - 1))
             tv.color = if (off == 0) colors.getOrElse(i) { 0xFFFFFFFF.toInt() } else 0xFFFFFFFF.toInt()
-            tv.showUnlit = off == 0
             tv.animate().cancel()
             if (animate && (a <= 3 || tv.alpha > 0f)) {
                 tv.animate().translationX(x).translationY(y).scaleX(scale).scaleY(scale).alpha(alpha)
@@ -126,30 +111,6 @@ class WheelView @JvmOverloads constructor(
                 tv.alpha = alpha
             }
         }
-        val target = colors.getOrElse(selected) { 0xFFFFFFFF.toInt() }
-        cursorAnim?.cancel()
-        if (animate) {
-            val from = cursorColor
-            cursorAnim = ValueAnimator.ofFloat(0f, 1f).apply {
-                this.duration = duration
-                addUpdateListener { cursorColor = argb.evaluate(it.animatedFraction, from, target) as Int; invalidate() }
-                start()
-            }
-        } else {
-            cursorColor = target
-            invalidate()
-        }
-    }
-
-    override fun onDraw(canvas: Canvas) {
-        super.onDraw(canvas)
-        if (apps.isEmpty()) return
-        val cy = height * 0.5f
-        cursorPaint.color = cursorColor
-        cursorPaint.alpha = 60
-        canvas.drawCircle(cursorX, cy, haloRadius, cursorPaint)
-        cursorPaint.alpha = 255
-        canvas.drawCircle(cursorX, cy, cursorRadius, cursorPaint)
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
