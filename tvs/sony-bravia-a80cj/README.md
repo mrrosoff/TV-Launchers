@@ -45,9 +45,12 @@ a factory reset (**Settings → System → About → Reset**) undoes everything,
   (`acl=1`) before any stream started; nothing in `debloat.txt` is involved. The likely fix is **Settings →
   Channels & Inputs → Apple AirPlay & HomeKit → Allow access → Everyone on the same network**. Its settings
   screen covers Home if opened over ADB; `am force-stop com.sony.dtv.airplayapp` clears it.
-- **Voice search (open):** the Assistant transcribes, but search results ("show me comedies") fail with
-  "can't process request": Google TV shows them in the stock launcher's search screen, which is disabled.
-  Direct commands ("open YouTube") still work. Fix to try: re-enable `launcherx` while keeping the new
-  launcher as Home, and check that Home survives a reboot.
+- **Voice search (open):** the remote's mic button goes straight to the Google Assistant over Bluetooth, never
+  through the key system, so no app can intercept it. The Assistant transcribes fine, but shows search results
+  by talking to Google TV's launcher directly (no Android intent is ever sent, so nothing can be redirected),
+  and that launcher is disabled: "can't process request". Direct commands ("open YouTube") still work. With
+  the launcher enabled, Google TV forces it to be Home, and this firmware won't let the shell disable just its
+  Home screen. Options: re-enable it and have Dot replace its home screen whenever it shows (a brief flash
+  on Home from inside apps), or use Dot's own voice search (Left on the wheel for now).
 - **Screensaver and standby:** Google TV's ambient screensaver starts after 10 minutes idle and the TV goes to
   standby after 30, with the new launcher as Home.

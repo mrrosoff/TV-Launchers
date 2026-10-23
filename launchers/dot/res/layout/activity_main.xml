@@ -116,6 +116,51 @@
     </LinearLayout>
 
     <ScrollView
+        android:id="@+id/voice_panel"
+        android:layout_width="440dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|center_vertical"
+        android:layout_marginEnd="52dp"
+        android:background="@drawable/panel"
+        android:focusable="false"
+        android:padding="8dp"
+        android:scrollbars="none"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <dev.mrrosoff.tv.dot.dots.DotTextView
+                android:id="@+id/voice_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="14dp"
+                android:paddingTop="12dp"
+                app:dotColor="@color/text_faint"
+                app:dotPitch="1.8dp" />
+
+            <dev.mrrosoff.tv.dot.dots.DotTextView
+                android:id="@+id/voice_heard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="14dp"
+                android:paddingTop="10dp"
+                android:paddingEnd="14dp"
+                android:paddingBottom="12dp"
+                app:dotColor="@color/text"
+                app:dotPitch="3dp" />
+
+            <LinearLayout
+                android:id="@+id/voice_list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+        </LinearLayout>
+    </ScrollView>
+
+    <ScrollView
         android:id="@+id/inputs_panel"
         android:layout_width="400dp"
         android:layout_height="wrap_content"

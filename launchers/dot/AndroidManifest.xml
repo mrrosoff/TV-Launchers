@@ -4,6 +4,8 @@
 
     <!-- Weather only: the IP location lookup and Open-Meteo. -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Voice search through the remote's microphone (granted by install.sh). -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <!-- Granted by install.sh, so Home can re-enable KeyService after a force stop. -->
     <uses-permission
         android:name="android.permission.WRITE_SECURE_SETTINGS"
@@ -11,6 +13,7 @@
 
     <uses-feature android:name="android.software.leanback" android:required="false" />
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
 
     <!-- Without these, Android 11+ package visibility hides every app. -->
     <queries>
@@ -20,6 +23,12 @@
         </intent>
         <intent>
             <action android:name="android.settings.SETTINGS" />
+        </intent>
+        <intent>
+            <action android:name="android.speech.RecognitionService" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.SEARCH" />
         </intent>
         <intent>
             <action android:name="android.intent.action.VIEW" />

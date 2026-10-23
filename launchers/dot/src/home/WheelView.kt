@@ -29,6 +29,8 @@ class WheelView @JvmOverloads constructor(
         fun onOpen(app: App)
         /** OK held on an app. */
         fun onMenu()
+        /** Left: start voice search. */
+        fun onVoice()
     }
 
     var listener: Listener? = null
@@ -143,7 +145,11 @@ class WheelView @JvmOverloads constructor(
                 step(1, held)
                 return true
             }
-            KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT -> return true
+            KeyEvent.KEYCODE_DPAD_LEFT -> {
+                if (!held) listener?.onVoice()
+                return true
+            }
+            KeyEvent.KEYCODE_DPAD_RIGHT -> return true
             KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_NUMPAD_ENTER -> {
                 if (event.repeatCount == 0) {
                     longPressed = false

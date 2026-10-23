@@ -2,8 +2,8 @@
 # Build a launcher for one TV and make it that TV's home screen.
 #
 # Order matters, so the TV is never left without a Home: install, start it, make it the default Home,
-# check that Home really opens it and doesn't crash, and only then disable the TV's stock launcher (and
-# remove launchers this one replaces). Needs JDK 17 and the Android SDK; see README.
+# check that Home really opens it and doesn't crash, and only then disable the TV's stock launcher (unless
+# the TV's tv.properties keeps it) and remove launchers this one replaces. Needs JDK 17 and the Android SDK.
 #
 # Usage: TV_HOST=<tv ip> ./install.sh tvs/<tv> [launchers/<launcher>]      (launcher defaults to launchers/dot)
 set -euo pipefail
@@ -19,6 +19,7 @@ TV_DIR="$(cd "$TV_DIR" && pwd)"
 prop() { sed -n "s/^$1=//p" "$TV_DIR/tv.properties" | head -n 1; }
 STOCK_HOME=$(prop stock_launcher)
 STOCK=${STOCK_HOME%%/*}
+KEEP_STOCK=$(prop keep_stock_launcher)
 PKG=$(sed -n "s/^ *applicationId '\(.*\)'.*/\1/p" "$LAUNCHER/build.gradle")
 # Earlier names of launchers from this repo, and the cleanyourtv launcher it started from.
 REPLACES="dev.mrrosoff.braviatv com.gathin.tvhome"
@@ -48,11 +49,17 @@ OUT=$(tv 'pm install -r /data/local/tmp/launcher.apk; rm -f /data/local/tmp/laun
 echo "$OUT"
 case "$OUT" in *Success*) ;; *) echo "ERROR: install failed; nothing else was changed." >&2; exit 1 ;; esac
 
+# A Home candidate appearing makes Android forget the chosen Home, so a kept stock launcher is enabled
+# before ours is chosen, never after.
+if [ "$KEEP_STOCK" = true ] && [ -n "$STOCK" ]; then tv "pm enable --user 0 $STOCK" >/dev/null; fi
+
 HOME_ACTIVITY=$(tv "cmd package resolve-activity --brief -a android.intent.action.MAIN -c android.intent.category.HOME $PKG" | tail -n 1 | tr -d '\r')
 case "$HOME_ACTIVITY" in "$PKG"/*) ;; *) echo "ERROR: $PKG has no Home activity." >&2; exit 1 ;; esac
 
 # WRITE_SECURE_SETTINGS lets a launcher turn its remote-button service on, and back on after a force stop.
 tv "pm grant $PKG android.permission.WRITE_SECURE_SETTINGS" 2>/dev/null || true
+# The microphone, for launchers with voice search.
+tv "pm grant $PKG android.permission.RECORD_AUDIO" 2>/dev/null || true
 tv "am start -W -n $HOME_ACTIVITY" | grep -E 'Status|Error' || true
 tv "cmd package set-home-activity --user 0 $HOME_ACTIVITY"
 tv 'logcat -c -b crash; input keyevent KEYCODE_HOME'
@@ -76,8 +83,10 @@ if ! tv "pidof $PKG" | grep -q '[0-9]' || tv 'logcat -d -b crash' | grep -q "Pro
   exit 1
 fi
 
-# Home is ours: now the stock launcher can go, and anything this launcher replaces.
-if [ -n "$STOCK" ] && tv "pm list packages -e $STOCK" | grep -qx "package:$STOCK"; then tv "pm disable-user --user 0 $STOCK"; fi
+# Home is ours: now the stock launcher can go (unless kept), and anything this launcher replaces.
+if [ "$KEEP_STOCK" != true ] && [ -n "$STOCK" ] && tv "pm list packages -e $STOCK" | grep -qx "package:$STOCK"; then
+  tv "pm disable-user --user 0 $STOCK"
+fi
 for old in $REPLACES; do
   [ "$old" = "$PKG" ] && continue
   if tv "pm list packages $old" | grep -qx "package:$old"; then tv "pm uninstall $old"; fi

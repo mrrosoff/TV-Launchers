@@ -22,6 +22,7 @@ import dev.mrrosoff.tv.dot.data.Prefs
 import dev.mrrosoff.tv.dot.data.TvConfig
 import dev.mrrosoff.tv.dot.dots.DotFieldView
 import dev.mrrosoff.tv.dot.remote.KeyService
+import dev.mrrosoff.tv.dot.voice.VoicePanel
 
 /** Home: the app wheel on the left, [InfoPanel] on the right. Hold OK on the wheel for Home screen settings. */
 class MainActivity : Activity(), WheelView.Listener {
@@ -31,6 +32,7 @@ class MainActivity : Activity(), WheelView.Listener {
     private lateinit var field: DotFieldView
     private lateinit var info: InfoPanel
     private lateinit var inputs: InputsMenu
+    private lateinit var voice: VoicePanel
     private lateinit var ambience: Ambience
     private val handler = Handler(Looper.getMainLooper())
 
@@ -45,6 +47,10 @@ class MainActivity : Activity(), WheelView.Listener {
         field = findViewById(R.id.dot_field)
         info = InfoPanel(this, prefs, handler)
         inputs = InputsMenu(this, findViewById(R.id.inputs_panel), findViewById(R.id.inputs_list), wheel)
+        voice = VoicePanel(
+            this, findViewById(R.id.voice_panel), findViewById(R.id.voice_title), findViewById(R.id.voice_heard),
+            findViewById(R.id.voice_list), wheel, { apps }, ::openApp,
+        )
         ambience = Ambience(
             this, prefs, handler, findViewById(R.id.glow),
             listOf<View>(wheel, findViewById(R.id.glow), findViewById(R.id.info)),
@@ -86,6 +92,7 @@ class MainActivity : Activity(), WheelView.Listener {
 
     override fun onPause() {
         KeyService.setHomeVisible(false)
+        voice.close()
         info.setVisible(false)
         field.running = false
         super.onPause()
@@ -119,7 +126,11 @@ class MainActivity : Activity(), WheelView.Listener {
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
-            if (inputs.isOpen) inputs.close() else wheel.requestFocus()
+            when {
+                voice.isOpen -> voice.close()
+                inputs.isOpen -> inputs.close()
+                else -> wheel.requestFocus()
+            }
             return true // the home screen never closes
         }
         return super.onKeyDown(keyCode, event)
@@ -127,15 +138,23 @@ class MainActivity : Activity(), WheelView.Listener {
 
     override fun onSelected(app: App, index: Int) = ambience.glowTo(brandColors.getOrElse(index) { 0xFFFFFFFF.toInt() })
 
-    override fun onOpen(app: App) {
+    override fun onOpen(app: App) = openApp(app, null)
+
+    /** Open [app], or [intent] into it (a voice search), and remember it as the last app opened. */
+    private fun openApp(app: App, intent: Intent?) {
         prefs.lastOpened = app.packageName
         try {
-            startActivity(app.launchIntent(this))
+            startActivity(intent ?: app.launchIntent(this))
         } catch (e: ActivityNotFoundException) {
             Toast.makeText(this, app.label, Toast.LENGTH_SHORT).show()
         } catch (e: SecurityException) {
             Toast.makeText(this, app.label, Toast.LENGTH_SHORT).show()
         }
+    }
+
+    override fun onVoice() {
+        inputs.close()
+        voice.start()
     }
 
     override fun onMenu() {

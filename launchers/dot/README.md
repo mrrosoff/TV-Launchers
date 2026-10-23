@@ -7,6 +7,9 @@ Android 8 and up.
   colour. Up/Down spin it, OK opens, hold OK for Home screen settings. It starts on the last app you opened.
 - **Time and weather:** current conditions from Open-Meteo for the TV's location (by IP, once a day),
   refreshed at most every 30 minutes while Home is open. These are its only network requests.
+- **Voice search:** press Left on the wheel and speak. Say an app's name to open it; anything else is
+  offered to the apps that can search for it (YouTube, Netflix, Disney+, Hulu). Uses the TV's own speech
+  recogniser and the remote's microphone.
 - **Remote:** on Home, Input opens an Inputs menu (HDMI, AV, Live TV) and the gear opens Settings. In apps
   the remote is left alone, so held buttons keep repeating.
 - **Background:** a faint dot grid with slow waves of light crossing it, only while Home is on screen.
