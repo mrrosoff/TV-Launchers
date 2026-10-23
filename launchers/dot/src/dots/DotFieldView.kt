@@ -7,14 +7,12 @@ import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.View
 import kotlin.math.PI
-import kotlin.math.cos
-import kotlin.math.hypot
 import kotlin.math.sin
 
 /**
- * The LED panel behind Home: a grid of faint dots that breathe and ripple. A wave rolls slowly across the
- * panel, rings spread from a circling centre, and the whole field swells on an eight-second breath; each
- * dot's brightness and size follow the result. Kept subtle: it should be noticed, not watched.
+ * The LED panel behind Home: a grid of faint dots with slow waves of light flowing across it. Two wave
+ * fronts travel the screen at different angles and speeds, so where they meet a soft lattice of brighter
+ * dots drifts by, and the whole field breathes on a [BREATH_S]-second rhythm.
  *
  * Dots are sorted into [LEVELS] brightness steps and each step is one drawPoints call, so a frame is a
  * handful of draw calls however many dots there are. Runs at about 20 fps, and only while [running].
@@ -58,17 +56,15 @@ class DotFieldView @JvmOverloads constructor(
         val t = (System.nanoTime() - start) / 1e9f
         val w = width.toFloat()
         val h = height.toFloat()
-        val breath = 0.75f + 0.25f * (0.5f + 0.5f * sin(t * TWO_PI / BREATH_S))
-        // The ripple's centre drifts around the middle of the screen once a minute.
-        val cx = w * (0.5f + 0.25f * cos(t * TWO_PI / 60f))
-        val cy = h * (0.5f + 0.2f * sin(t * TWO_PI / 60f))
+        val breath = 0.7f + 0.3f * (0.5f + 0.5f * sin(t * TWO_PI / BREATH_S))
         counts.fill(0)
         for (i in xs.indices) {
             val nx = xs[i] / w
             val ny = ys[i] / h
-            val wave = 0.5f + 0.5f * sin(TWO_PI * (nx * 1.1f + ny * 0.7f) - t * 0.3f)
-            val ring = 0.5f + 0.5f * sin(hypot(xs[i] - cx, ys[i] - cy) / pitch * 0.45f - t * 0.6f)
-            val b = (wave * 0.55f + ring * 0.45f) * breath
+            val a = 0.5f + 0.5f * sin(TWO_PI * (nx * 1.2f + ny * 0.6f) - t * 0.3f)
+            val c = 0.5f + 0.5f * sin(TWO_PI * (ny * 1.0f - nx * 0.5f) - t * 0.19f)
+            val wave = a * 0.6f + c * 0.4f
+            val b = FLOOR + (1f - FLOOR) * wave * wave * breath
             val level = (b * LEVELS).toInt().coerceIn(0, LEVELS - 1)
             val k = counts[level] * 2
             buckets[level][k] = xs[i]
@@ -79,7 +75,7 @@ class DotFieldView @JvmOverloads constructor(
             if (counts[level] == 0) continue
             val f = (level + 1f) / LEVELS
             paint.alpha = (MIN_ALPHA + (MAX_ALPHA - MIN_ALPHA) * f * f).toInt()
-            paint.strokeWidth = baseDiameter * (0.85f + 0.3f * f)
+            paint.strokeWidth = baseDiameter * (0.85f + 0.4f * f)
             canvas.drawPoints(buckets[level], 0, counts[level] * 2, paint)
         }
         if (running) postInvalidateDelayed(FRAME_MS)
@@ -89,9 +85,11 @@ class DotFieldView @JvmOverloads constructor(
 
     private companion object {
         const val LEVELS = 8
-        const val MIN_ALPHA = 4f
-        const val MAX_ALPHA = 30f
-        const val BREATH_S = 8f
+        /** Every dot keeps at least this share of the brightness range, so no part of the grid goes black. */
+        const val FLOOR = 0.15f
+        const val MIN_ALPHA = 14f
+        const val MAX_ALPHA = 40f
+        const val BREATH_S = 10f
         const val FRAME_MS = 50L
         const val TWO_PI = (2 * PI).toFloat()
     }

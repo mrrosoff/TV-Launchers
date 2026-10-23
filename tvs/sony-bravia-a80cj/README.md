@@ -45,5 +45,9 @@ a factory reset (**Settings → System → About → Reset**) undoes everything,
   (`acl=1`) before any stream started; nothing in `debloat.txt` is involved. The likely fix is **Settings →
   Channels & Inputs → Apple AirPlay & HomeKit → Allow access → Everyone on the same network**. Its settings
   screen covers Home if opened over ADB; `am force-stop com.sony.dtv.airplayapp` clears it.
+- **Voice search (open):** the Assistant transcribes, but search results ("show me comedies") fail with
+  "can't process request": Google TV shows them in the stock launcher's search screen, which is disabled.
+  Direct commands ("open YouTube") still work. Fix to try: re-enable `launcherx` while keeping the new
+  launcher as Home, and check that Home survives a reboot.
 - **Screensaver and standby:** Google TV's ambient screensaver starts after 10 minutes idle and the TV goes to
   standby after 30, with the new launcher as Home.

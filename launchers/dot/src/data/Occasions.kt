@@ -1,9 +1,10 @@
 package dev.mrrosoff.tv.dot.data
 
+import dev.mrrosoff.tv.dot.R
 import dev.mrrosoff.tv.dot.dots.ParticleView
 import java.util.Calendar
 
-/** A themed day: its greeting, colours, a dot-matrix emblem beside the weather, and an ambient effect. */
+/** A themed day: its greeting, colours, an emblem beside the greeting, and an ambient effect. */
 class Occasion(
     val id: String,
     val greeting: String,
@@ -11,7 +12,8 @@ class Occasion(
     val accent: Int,
     /** A second colour for the corner glow and the effect. */
     val secondary: Int,
-    val emblem: Array<String>,
+    /** A Lucide icon. */
+    val emblem: Int,
     val effect: ParticleView.Effect,
 )
 
@@ -66,54 +68,9 @@ object Occasions {
         if (name.isEmpty() || m == null || d == null) null else Triple(name, m, d)
     }
 
-    private fun halloween() = Occasion("halloween", "Happy Halloween", ORANGE, PURPLE, PUMPKIN, ParticleView.Effect.BATS)
-    private fun holidays() = Occasion("holidays", "Happy holidays", ICE, BLUE, SNOWFLAKE, ParticleView.Effect.SNOW)
-    private fun newYear() = Occasion("newyear", "Happy new year", GOLD, ICE, SNOWFLAKE, ParticleView.Effect.SNOW)
-    private fun july4() = Occasion("july4", "Happy 4th of July", RED, BLUE, STAR, ParticleView.Effect.FIREWORKS)
-    private fun birthdayFor(name: String) = Occasion("birthday", "Happy birthday $name", GOLD, PINK, CAKE, ParticleView.Effect.CONFETTI)
-
-    private val PUMPKIN = arrayOf(
-        "....##...",
-        "...#.....",
-        ".##.#.##.",
-        "#########",
-        "##.###.##",
-        "#########",
-        "##.#.#.##",
-        ".#######.",
-        "..#####..",
-    )
-    private val SNOWFLAKE = arrayOf(
-        "....#....",
-        ".#..#..#.",
-        "..#.#.#..",
-        "...###...",
-        "#########",
-        "...###...",
-        "..#.#.#..",
-        ".#..#..#.",
-        "....#....",
-    )
-    private val STAR = arrayOf(
-        "....#....",
-        "....#....",
-        "...###...",
-        "#########",
-        ".#######.",
-        "..#####..",
-        "..##.##..",
-        ".##...##.",
-        "#.......#",
-    )
-    private val CAKE = arrayOf(
-        "..#.#.#..",
-        "..#.#.#..",
-        ".#######.",
-        ".#.#.#.#.",
-        ".#######.",
-        "#########",
-        "#.#.#.#.#",
-        "#########",
-        ".........",
-    )
+    private fun halloween() = Occasion("halloween", "Happy Halloween", ORANGE, PURPLE, R.drawable.ic_ghost, ParticleView.Effect.BATS)
+    private fun holidays() = Occasion("holidays", "Happy holidays", ICE, BLUE, R.drawable.ic_snowflake, ParticleView.Effect.SNOW)
+    private fun newYear() = Occasion("newyear", "Happy new year", GOLD, ICE, R.drawable.ic_sparkles, ParticleView.Effect.SNOW)
+    private fun july4() = Occasion("july4", "Happy 4th of July", RED, BLUE, R.drawable.ic_star, ParticleView.Effect.FIREWORKS)
+    private fun birthdayFor(name: String) = Occasion("birthday", "Happy birthday $name", GOLD, PINK, R.drawable.ic_cake, ParticleView.Effect.CONFETTI)
 }

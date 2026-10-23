@@ -56,8 +56,12 @@ tv "pm grant $PKG android.permission.WRITE_SECURE_SETTINGS" 2>/dev/null || true
 tv "am start -W -n $HOME_ACTIVITY" | grep -E 'Status|Error' || true
 tv "cmd package set-home-activity --user 0 $HOME_ACTIVITY"
 tv 'logcat -c -b crash; input keyevent KEYCODE_HOME'
-sleep 3
-FOCUS=$(tv 'dumpsys activity activities | grep mFocusedApp')
+# A fresh install can take a few seconds to draw its first frame, so give it up to 15.
+for _ in 1 2 3 4 5; do
+  sleep 3
+  FOCUS=$(tv 'dumpsys activity activities | grep mFocusedApp')
+  case "$FOCUS" in *"$PKG"/*) break ;; esac
+done
 echo "$FOCUS"
 case "$FOCUS" in
   *"$PKG"/*) ;;

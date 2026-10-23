@@ -10,10 +10,8 @@ import android.content.SharedPreferences
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.provider.Settings
 import android.view.KeyEvent
 import android.view.View
-import android.widget.ImageView
 import android.widget.Toast
 import dev.mrrosoff.tv.dot.R
 import dev.mrrosoff.tv.dot.data.App
@@ -25,15 +23,13 @@ import dev.mrrosoff.tv.dot.data.TvConfig
 import dev.mrrosoff.tv.dot.dots.DotFieldView
 import dev.mrrosoff.tv.dot.remote.KeyService
 
-/** Home: the app wheel on the left, [InfoPanel] on the right, network and Settings in the top corner. */
+/** Home: the app wheel on the left, [InfoPanel] on the right. Hold OK on the wheel for Home screen settings. */
 class MainActivity : Activity(), WheelView.Listener {
 
     private lateinit var prefs: Prefs
     private lateinit var wheel: WheelView
-    private lateinit var settingsView: ImageView
     private lateinit var field: DotFieldView
     private lateinit var info: InfoPanel
-    private lateinit var network: NetworkIndicator
     private lateinit var inputs: InputsMenu
     private lateinit var ambience: Ambience
     private val handler = Handler(Looper.getMainLooper())
@@ -46,19 +42,16 @@ class MainActivity : Activity(), WheelView.Listener {
         setContentView(R.layout.activity_main)
         prefs = Prefs(this)
         wheel = findViewById(R.id.wheel)
-        settingsView = findViewById(R.id.settings)
         field = findViewById(R.id.dot_field)
         info = InfoPanel(this, prefs, handler)
-        network = NetworkIndicator(this, findViewById(R.id.network), handler)
         inputs = InputsMenu(this, findViewById(R.id.inputs_panel), findViewById(R.id.inputs_list), wheel)
         ambience = Ambience(
             this, prefs, handler, findViewById(R.id.glow),
-            listOf<View>(wheel, findViewById(R.id.glow), findViewById(R.id.info), findViewById(R.id.status)),
+            listOf<View>(wheel, findViewById(R.id.glow), findViewById(R.id.info)),
         )
         previewFrom(intent)
 
         wheel.listener = this
-        setUpButtons()
         loadApps(select = lastUsedIndex())
         wheel.requestFocus()
 
@@ -75,7 +68,6 @@ class MainActivity : Activity(), WheelView.Listener {
     override fun onStart() {
         super.onStart()
         info.start()
-        network.start()
         ambience.startDrift()
     }
 
@@ -102,7 +94,6 @@ class MainActivity : Activity(), WheelView.Listener {
     override fun onStop() {
         super.onStop()
         info.stop()
-        network.stop()
         ambience.stopDrift()
     }
 
@@ -147,8 +138,8 @@ class MainActivity : Activity(), WheelView.Listener {
         }
     }
 
-    override fun onRight() {
-        settingsView.requestFocus()
+    override fun onMenu() {
+        startActivity(Intent(this, HomeSettingsActivity::class.java))
     }
 
     private fun loadApps(select: Int? = null) {
@@ -163,30 +154,6 @@ class MainActivity : Activity(), WheelView.Listener {
     private fun lastUsedIndex(): Int {
         val last = prefs.lastOpened ?: return 0
         return apps.indexOfFirst { it.packageName == last }.coerceAtLeast(0)
-    }
-
-    private fun setUpButtons() {
-        settingsView.setOnClickListener { openSettings(Settings.ACTION_SETTINGS) }
-        settingsView.setOnLongClickListener {
-            startActivity(Intent(this, HomeSettingsActivity::class.java))
-            true
-        }
-        settingsView.setOnKeyListener { _, keyCode, event ->
-            if (event.action != KeyEvent.ACTION_DOWN) return@setOnKeyListener isDpad(keyCode)
-            when (keyCode) {
-                KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_DOWN -> { wheel.requestFocus(); true }
-                KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_RIGHT -> true
-                else -> false
-            }
-        }
-    }
-
-    private fun openSettings(action: String) {
-        try {
-            startActivity(Intent(action).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-        } catch (e: ActivityNotFoundException) {
-            Toast.makeText(this, R.string.settings, Toast.LENGTH_SHORT).show()
-        }
     }
 
     /** `am start -n dev.mrrosoff.tv.dot/.home.MainActivity --es preview_theme halloween` ("" for the calendar). */

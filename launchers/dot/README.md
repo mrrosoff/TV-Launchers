@@ -1,46 +1,33 @@
 # Dot
 
-A minimal home screen for Android TV / Google TV, drawn as an LED dot matrix. Kotlin, no dependencies,
-about 60 KB, `minSdk` 26 (Android 8).
+An LED dot-matrix home screen for Android TV / Google TV. Kotlin with no dependencies, about 60 KB,
+Android 8 and up.
 
-- **App wheel** on the left: apps in alphabetical order as dot-matrix names on an arc; the selected one is
-  largest and in the service's own colour, with a soft matching glow. Up/Down spin it, OK opens. It starts on
-  the app you last opened.
-- **Clock, date and weather** at the top right, with the network signal and the Settings gear in the corner.
-  Settings opens the TV's full Settings; hold OK on it for **Home screen settings** (show or hide apps,
-  burn-in care, the remote buttons, theme preview).
-- **Weather** from [Open-Meteo](https://open-meteo.com) for the TV's public-IP location (looked up once a
-  day at [ipwho.is](https://ipwho.is)), refreshed at most every 30 minutes while Home is open. Those are
-  the only network requests.
-- **Remote buttons on Home:** Input opens an Inputs menu (HDMI ports, AV, Live TV) and the gear opens
-  Settings. The helper that catches them stops held buttons from repeating, so it only runs while Home is on
-  screen; in apps the remote behaves as stock.
-- **A living background:** a faint grid of dots that slowly breathes and ripples, only while Home is visible.
-- **Burn-in care** for OLED panels: the static parts of Home drift a few pixels every 3 minutes.
-- **Seasonal themes**, each with a greeting, colours, an emblem and a light particle effect: Halloween
-  (Oct 24–31), winter break (Dec 18–30; "Happy new year" Dec 31–Jan 1), the Fourth of July, and **birthdays**
-  from the TV's gitignored `personal.properties`. The dates are in `src/data/Occasions.kt`.
+- **App wheel:** apps in alphabetical order on an endless arc, the selected one in the service's own
+  colour. Up/Down spin it, OK opens, hold OK for Home screen settings. It starts on the last app you opened.
+- **Time and weather:** current conditions from Open-Meteo for the TV's location (by IP, once a day),
+  refreshed at most every 30 minutes while Home is open. These are its only network requests.
+- **Remote:** on Home, Input opens an Inputs menu (HDMI, AV, Live TV) and the gear opens Settings. In apps
+  the remote is left alone, so held buttons keep repeating.
+- **Background:** a faint dot grid with slow waves of light crossing it, only while Home is on screen.
+- **Burn-in care:** the static parts drift a few pixels every few minutes.
+- **Themes:** Halloween, winter break, New Year, the Fourth of July and birthdays (`src/data/Occasions.kt`).
 
 ## Build
 
-`./install.sh tvs/<tv>` from the repo root builds and installs it. To build by hand:
+`./install.sh tvs/<tv>` from the repo root builds and installs it. By hand:
 
-```sh
-./gradlew assembleRelease -Ptv=../../tvs/<tv>      # with that TV's tv.properties and personal.properties
-./gradlew assembleRelease                          # generic: nothing hidden, no Live TV row, keycodes only
+```bash
+./gradlew assembleRelease -Ptv=../../tvs/<tv>    # with that TV's tv.properties
 ```
 
-## Preview a theme
-
-On the TV, hold OK on Settings → Home screen settings → **Theme**, or over ADB:
-`tools/tv.py 'am start -n dev.mrrosoff.tv.dot/.home.MainActivity --es preview_theme halloween'`
-(`holidays`, `newyear`, `july4`, `birthday`; `''` goes back to following the date).
+Preview a theme on the TV: `tools/tv.py 'am start -n dev.mrrosoff.tv.dot/.home.MainActivity --es preview_theme halloween'`.
 
 ## Code
 
-| Folder | |
+| | |
 |---|---|
-| `src/home/` | `MainActivity` and the pieces of Home: `WheelView`, `InfoPanel`, `InputsMenu`, `NetworkIndicator`, `Ambience`, `HomeSettingsActivity` |
-| `src/dots/` | The LED drawing: `DotFont`, `DotTextView`, `DotIconView`, `DotFieldView` (background), `ParticleView` (themes) |
-| `src/data/` | `Apps`, `BrandColors`, `Inputs`, `Weather`, `Occasions`, `Prefs`, `TvConfig` (the TV's `tv.properties`) |
+| `src/home/` | `MainActivity`, `WheelView`, `InfoPanel`, `InputsMenu`, `Ambience`, `HomeSettingsActivity` |
+| `src/dots/` | `DotFont`, `DotTextView`, `DotFieldView` (background), `ParticleView` (theme effects) |
+| `src/data/` | `Apps`, `BrandColors`, `Inputs`, `Weather`, `Occasions`, `Prefs`, `TvConfig` |
 | `src/remote/` | `KeyService`, the Input and gear buttons |

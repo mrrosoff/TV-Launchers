@@ -44,7 +44,7 @@ class DotTextView @JvmOverloads constructor(
             invalidate()
         }
 
-    /** When set, [color] follows the view's state, e.g. dark dots on a focused white pill. */
+    /** When set, [color] follows the view's state, e.g. dark dots on a focused white row. */
     var colors: ColorStateList? = null
         set(value) {
             field = value

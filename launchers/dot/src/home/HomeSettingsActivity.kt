@@ -76,9 +76,9 @@ class HomeSettingsActivity : Activity() {
 
     private fun header(text: String) = DotTextView(this).apply {
         this.text = text
-        pitch = MenuRows.dp(this@HomeSettingsActivity, 1.6f).toFloat()
+        pitch = dp(1.6f)
         color = getColor(R.color.text_faint)
-        val pad = MenuRows.dp(this@HomeSettingsActivity, 14f)
-        setPadding(pad, pad, pad, MenuRows.dp(this@HomeSettingsActivity, 8f))
+        val pad = dp(14f).toInt()
+        setPadding(pad, pad, pad, dp(8f).toInt())
     }
 }

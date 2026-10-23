@@ -39,14 +39,11 @@ class Prefs(context: Context) {
     fun setLocation(l: Location) = p.edit().putFloat("lat", l.latitude.toFloat()).putFloat("lon", l.longitude.toFloat())
         .putString("city", l.city).putLong("location_at", System.currentTimeMillis()).apply()
 
-    val weather: Weather.Now?
-        get() = if (!p.contains("temp")) null else Weather.Now(
-            p.getInt("temp", 0), p.getInt("weather_code", 3), p.getBoolean("is_day", true), p.getString("weather_city", "").orEmpty(),
-        )
+    /** The last Open-Meteo answer, as received; [Weather] parses it. */
+    val weatherJson: String? get() = p.getString("weather", null)
     val weatherAt: Long get() = p.getLong("weather_at", 0L)
 
-    fun setWeather(w: Weather.Now) = p.edit().putInt("temp", w.temperature).putInt("weather_code", w.code)
-        .putBoolean("is_day", w.isDay).putString("weather_city", w.city).putLong("weather_at", System.currentTimeMillis()).apply()
+    fun setWeather(json: String) = p.edit().putString("weather", json).putLong("weather_at", System.currentTimeMillis()).apply()
 
     /** A theme to show regardless of the date ("" follows the calendar); see [Occasions.previewIds]. */
     var themePreview: String

@@ -5,16 +5,17 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.res.ColorStateList
 import android.graphics.drawable.GradientDrawable
 import android.os.Handler
 import android.text.format.DateFormat
 import android.view.View
+import android.widget.ImageView
 import dev.mrrosoff.tv.dot.R
 import dev.mrrosoff.tv.dot.data.Occasion
 import dev.mrrosoff.tv.dot.data.Occasions
 import dev.mrrosoff.tv.dot.data.Prefs
 import dev.mrrosoff.tv.dot.data.Weather
-import dev.mrrosoff.tv.dot.dots.DotIconView
 import dev.mrrosoff.tv.dot.dots.DotTextView
 import dev.mrrosoff.tv.dot.dots.ParticleView
 import java.util.Calendar
@@ -22,22 +23,23 @@ import java.util.Date
 import java.util.concurrent.Executors
 
 /**
- * The right side of Home: clock, date and weather, and on themed days a greeting with its emblem, the
- * corner glow and the ambient particles.
+ * The right side of Home: clock, date and the weather now, and on themed days a
+ * greeting with its emblem, the corner glow and the ambient particles.
  */
 class InfoPanel(
     private val activity: Activity,
     private val prefs: Prefs,
     private val handler: Handler,
 ) {
+    private val occasionRow: View = activity.findViewById(R.id.occasion)
+    private val emblem: ImageView = activity.findViewById(R.id.emblem)
     private val greeting: DotTextView = activity.findViewById(R.id.greeting)
     private val clock: DotTextView = activity.findViewById(R.id.clock)
     private val date: DotTextView = activity.findViewById(R.id.date)
     private val weather: View = activity.findViewById(R.id.weather)
-    private val weatherIcon: DotIconView = activity.findViewById(R.id.weather_icon)
+    private val weatherIcon: ImageView = activity.findViewById(R.id.weather_icon)
     private val temperature: DotTextView = activity.findViewById(R.id.temperature)
-    private val occasionRow: View = activity.findViewById(R.id.occasion)
-    private val emblem: DotIconView = activity.findViewById(R.id.emblem)
+    private val condition: DotTextView = activity.findViewById(R.id.condition)
     private val particles: ParticleView = activity.findViewById(R.id.particles)
     private val occasionGlow: View = activity.findViewById(R.id.occasion_glow)
 
@@ -50,11 +52,6 @@ class InfoPanel(
         override fun onReceive(context: Context, intent: Intent) = tick()
     }
     private val weatherRefresh = Runnable { refreshWeather() }
-
-    init {
-        weatherIcon.pitch = activity.dp(3.2f)
-        emblem.pitch = activity.dp(2.4f)
-    }
 
     fun start() {
         applyOccasion()
@@ -92,8 +89,8 @@ class InfoPanel(
             occasionGlow.visibility = View.GONE
             particles.show(ParticleView.Effect.NONE, intArrayOf())
         } else {
-            emblem.pattern = o.emblem
-            emblem.color = o.accent
+            emblem.setImageResource(o.emblem)
+            emblem.imageTintList = ColorStateList.valueOf(o.accent)
             greeting.text = o.greeting
             greeting.color = o.accent
             occasionRow.visibility = View.VISIBLE
@@ -117,7 +114,7 @@ class InfoPanel(
         }
         val now = Date()
         clock.text = DateFormat.getTimeFormat(activity).format(now)
-        val pattern = DateFormat.getBestDateTimePattern(activity.resources.configuration.locales[0], "EEEMMMd")
+        val pattern = DateFormat.getBestDateTimePattern(activity.resources.configuration.locales[0], "EEEEMMMMd")
         date.text = DateFormat.format(pattern, now).toString().replace(",", "")
     }
 
@@ -126,16 +123,16 @@ class InfoPanel(
             weather.visibility = View.GONE
             return
         }
-        weatherIcon.pattern = DotIconView.weather(now.code, now.isDay)
-        weatherIcon.color = activity.getColor(R.color.text_faint)
-        temperature.text = "${now.temperature}°"
+        weatherIcon.setImageResource(Weather.icon(now.code, now.isDay))
+        temperature.text = activity.getString(R.string.degrees, now.temperature)
+        condition.text = Weather.describe(activity, now.code)
         weather.visibility = View.VISIBLE
     }
 
     private fun refreshWeather() {
         handler.removeCallbacks(weatherRefresh)
         handler.postDelayed(weatherRefresh, WEATHER_CHECK_MS)
-        if (!Weather.isStale(prefs)) return
+        if (!Weather.isStale(prefs) && Weather.cached(prefs) != null) return
         background.execute {
             val now = Weather.fetch(activity, prefs)
             if (now != null) handler.post { showWeather(now) }
