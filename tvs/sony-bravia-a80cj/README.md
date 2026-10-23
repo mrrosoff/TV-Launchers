@@ -45,12 +45,29 @@ a factory reset (**Settings → System → About → Reset**) undoes everything,
   (`acl=1`) before any stream started; nothing in `debloat.txt` is involved. The likely fix is **Settings →
   Channels & Inputs → Apple AirPlay & HomeKit → Allow access → Everyone on the same network**. Its settings
   screen covers Home if opened over ADB; `am force-stop com.sony.dtv.airplayapp` clears it.
-- **Voice search (open):** the remote's mic button goes straight to the Google Assistant over Bluetooth, never
-  through the key system, so no app can intercept it. The Assistant transcribes fine, but shows search results
-  by talking to Google TV's launcher directly (no Android intent is ever sent, so nothing can be redirected),
-  and that launcher is disabled: "can't process request". Direct commands ("open YouTube") still work. With
-  the launcher enabled, Google TV forces it to be Home, and this firmware won't let the shell disable just its
-  Home screen. Options: re-enable it and have Dot replace its home screen whenever it shows (a brief flash
-  on Home from inside apps), or use Dot's own voice search (Left on the wheel for now).
+- **Voice search:** the remote's mic button goes straight to the Google Assistant over Bluetooth, never
+  through the key system, so no app can intercept it. Commands that name an app work — "open YouTube", "play
+  Ted Lasso on Apple TV". A bare title ("Ted Lasso") does not: the Assistant hands those to Google TV's own
+  launcher directly rather than sending an Android intent anything could catch, and that launcher is disabled,
+  so it answers "can't process request". Re-enabling the launcher doesn't help — on this firmware it always
+  wins Home (see below), so turning it on takes Home back from Dot. Naming the app is the clean workaround;
+  Dot ships no voice search of its own.
 - **Screensaver and standby:** Google TV's ambient screensaver starts after 10 minutes idle and the TV goes to
   standby after 30, with the new launcher as Home.
+
+## Home screen and root
+
+Dot runs as Home, but it isn't the *true* default. Google's launcher (`launcherx`) is a privileged system app
+that declares a higher Home priority than any sideloaded app can, and Android's activity resolver always picks
+the highest priority — `cmd package set-home-activity` and the role APIs don't override it. So with `launcherx`
+disabled Dot gets Home; with it enabled `launcherx` takes it back. You can't keep `launcherx` only for its
+Assistant search without it also reclaiming Home. A same-named replacement is rejected (signature mismatch —
+it's signed with Sony/Google's key), as the `pm install` test confirmed.
+
+Getting underneath this would need root, and there's no legitimate path to it on this panel: it's a `user`
+release-keys build with a locked bootloader and no Sony unlock — the manufacturer never shipped one for this
+model (DRM and verified-boot requirements). That's the ceiling, not a setting that's hidden. Everything here
+works at the user level: `pm disable-user`, `WRITE_SECURE_SETTINGS`, an accessibility service, a sideloaded
+launcher. The only things the lock genuinely costs are Dot winning Home outright and a flash-free bare-title
+Assistant search. A separate box with an unlockable bootloader (e.g. an Nvidia Shield) would clear both, at
+the cost of an HDMI device instead of the TV's own OS.

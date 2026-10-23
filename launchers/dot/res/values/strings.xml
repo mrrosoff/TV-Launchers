@@ -23,12 +23,6 @@
     <string name="weather_snow_showers">Snow showers</string>
     <string name="weather_thunderstorms">Thunderstorms</string>
     <string name="degrees">%1$d°</string>
-    <string name="voice_listening">Listening</string>
-    <string name="voice_thinking">One moment</string>
-    <string name="voice_search_in">Search in</string>
-    <string name="voice_try_again">Didn\'t catch that</string>
-    <string name="voice_no_apps">No app can search for that</string>
-    <string name="voice_unavailable">Voice recognition isn\'t available on this TV</string>
     <string name="theme">Theme</string>
     <string name="theme_auto">By date</string>
     <string name="pixel_shift">Burn-in care (pixel shift)</string>

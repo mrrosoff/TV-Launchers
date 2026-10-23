@@ -58,8 +58,6 @@ case "$HOME_ACTIVITY" in "$PKG"/*) ;; *) echo "ERROR: $PKG has no Home activity.
 
 # WRITE_SECURE_SETTINGS lets a launcher turn its remote-button service on, and back on after a force stop.
 tv "pm grant $PKG android.permission.WRITE_SECURE_SETTINGS" 2>/dev/null || true
-# The microphone, for launchers with voice search.
-tv "pm grant $PKG android.permission.RECORD_AUDIO" 2>/dev/null || true
 tv "am start -W -n $HOME_ACTIVITY" | grep -E 'Status|Error' || true
 tv "cmd package set-home-activity --user 0 $HOME_ACTIVITY"
 tv 'logcat -c -b crash; input keyevent KEYCODE_HOME'
