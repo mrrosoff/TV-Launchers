@@ -4,6 +4,10 @@ Copyright (c) 2026 Gathin (cleanyourtv: https://github.com/Gathin23/cleanyourtv)
 Copyright (c) 2026 TWBankston (Seeker TV: https://github.com/TWBankston/Seeker-TV-Launcher; weather icons, wheel design)
 Copyright (c) 2026 mrrosoff (changes in this repository)
 
+launchers/dot/res/drawable/ic_*.xml are Lucide icons: ISC License, Copyright (c) 2026 Lucide Icons and Contributors
+(https://lucide.dev). Permission to use, copy, modify, and/or distribute them for any purpose with or without fee
+is granted, provided this notice appears in all copies.
+
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
