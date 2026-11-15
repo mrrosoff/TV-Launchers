@@ -29,7 +29,6 @@ import kotlin.time.TimeSource
  *
  * - Washer done while the dryer runs: nothing yet; the dryer finishing then says "Laundry done".
  * - Dryer done in one of tv.properties' movie_apps: waits until another app is in front.
- * - A "done" after under [MIN_RUN] of running is a restart or a short tumble, not a load.
  */
 class Laundry(private val service: AccessibilityService) {
 
@@ -43,7 +42,6 @@ class Laundry(private val service: AccessibilityService) {
     private val showing = Mutex()
 
     private val status = mutableMapOf<String, String>()
-    private val runningSince = mutableMapOf<String, TimeSource.Monotonic.ValueTimeMark>()
     private var foreground: String? = null
     private var waiting: String? = null
 
@@ -83,16 +81,12 @@ class Laundry(private val service: AccessibilityService) {
 
     private fun changed(fired: JsonObject) {
         val sensor = fired["entity_id"]?.jsonPrimitive?.content ?: return
-        val from = fired.state("from_state")
         val to = fired.state("to_state") ?: return
         status[sensor] = to
-        if (to == "running") runningSince[sensor] = TimeSource.Monotonic.markNow()
         if (to != "done") {
             if (sensor == dryer) waiting = null
             return
         }
-        val ran = runningSince.remove(sensor)?.elapsedNow()
-        if (from != "running" || (ran != null && ran < MIN_RUN)) return
         when {
             sensor == washer && status[dryer] == "running" -> Unit
             sensor == washer -> announce("Washer done", always = true)
@@ -113,8 +107,4 @@ class Laundry(private val service: AccessibilityService) {
     }
 
     private fun JsonObject.state(key: String) = (this[key] as? JsonObject)?.get("state")?.jsonPrimitive?.content
-
-    private companion object {
-        val MIN_RUN = 15.minutes
-    }
 }
