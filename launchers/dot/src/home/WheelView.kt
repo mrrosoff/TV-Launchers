@@ -25,7 +25,7 @@ class WheelView @JvmOverloads constructor(
 ) : FrameLayout(context, attrs) {
 
     interface Listener {
-        fun onSelected(app: App, index: Int)
+        fun onSelected(app: App, index: Int, byUser: Boolean)
         fun onOpen(app: App)
         /** OK held on an app. */
         fun onMenu()
@@ -74,14 +74,14 @@ class WheelView @JvmOverloads constructor(
         offsets = IntArray(list.size) { Int.MAX_VALUE }
         selected = select.coerceIn(0, max(0, list.size - 1))
         if (width > 0) layoutRows(animate = false) else post { layoutRows(animate = false) }
-        apps.getOrNull(selected)?.let { listener?.onSelected(it, selected) }
+        apps.getOrNull(selected)?.let { listener?.onSelected(it, selected, byUser = false) }
     }
 
     fun select(index: Int, animate: Boolean) {
         if (apps.isEmpty()) return
         selected = index.coerceIn(0, apps.size - 1)
         layoutRows(animate)
-        listener?.onSelected(apps[selected], selected)
+        listener?.onSelected(apps[selected], selected, byUser = false)
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -179,7 +179,7 @@ class WheelView @JvmOverloads constructor(
     private fun step(delta: Int, fast: Boolean) {
         selected = (selected + delta + apps.size) % apps.size
         layoutRows(animate = true, fast = fast)
-        listener?.onSelected(apps[selected], selected)
+        listener?.onSelected(apps[selected], selected, byUser = true)
     }
 
     private fun dp(v: Float) = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, v, resources.displayMetrics)

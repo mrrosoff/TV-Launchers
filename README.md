@@ -32,6 +32,9 @@ Each TV has a folder in `tvs/`. Its `tv.properties` holds everything specific to
 the Live TV app, remote button codes, and the weather fallback city. Copy a folder to add another TV.
 
 - **Birthdays:** add `birthdays=Name:MM-DD,Name:MM-DD` to the TV's `personal.properties` (gitignored).
+- **Lights:** add `ha_url`, `ha_token` (a Home Assistant long-lived access token) and `ha_lights` to the same
+  file. The lights by the TV then take on each app's colour as you spin the wheel, and fade back when you open
+  one or turn the TV off.
 - **On the TV:** hold OK on any app for Home screen settings: show or hide apps, preview a theme, burn-in care.
 - After changing a file, run `./install.sh tvs/<tv>` again.
 

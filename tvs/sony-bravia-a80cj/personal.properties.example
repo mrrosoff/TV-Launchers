@@ -1,2 +1,7 @@
 # Copy to personal.properties (gitignored) and fill in. Format: Name:MM-DD, comma-separated.
 birthdays=Alex:01-31,Sam:12-02
+
+# Optional: Home Assistant lights that follow the wheel. The token is a long-lived access token.
+# ha_url=http://homeassistant.local:8123
+# ha_token=
+# ha_lights=light.tv_left,light.tv_right

@@ -28,6 +28,9 @@ android {
         versionCode 1
         versionName '1.0'
         resValue 'string', 'birthdays', personal.getProperty('birthdays', '')
+        resValue 'string', 'ha_url', personal.getProperty('ha_url', '')
+        resValue 'string', 'ha_token', personal.getProperty('ha_token', '')
+        resValue 'string', 'ha_lights', personal.getProperty('ha_lights', '').replaceAll('\\s', '')
         resValue 'string', 'tv_live_tv_package', tv.getProperty('live_tv_package', '')
         resValue 'string', 'tv_hidden_apps', tv.getProperty('hidden_apps', '').replaceAll('\\s', '')
         resValue 'integer', 'tv_input_scancode', scancode('remote_input_scancode')
@@ -42,7 +45,7 @@ android {
         release {
             minifyEnabled true
             shrinkResources true
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt')
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             // Sideloaded over ADB, never published: the debug key is enough.
             signingConfig signingConfigs.debug
         }
@@ -77,4 +80,10 @@ android {
     kotlinOptions {
         jvmTarget = '17'
     }
+}
+
+dependencies {
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1'
+    implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3'
+    implementation 'io.ktor:ktor-client-cio:2.3.12'
 }
