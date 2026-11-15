@@ -12,6 +12,7 @@ import dev.mrrosoff.tv.dot.data.Inputs
 import dev.mrrosoff.tv.dot.data.Prefs
 import dev.mrrosoff.tv.dot.data.TvConfig
 import dev.mrrosoff.tv.dot.home.MainActivity
+import dev.mrrosoff.tv.dot.homeassistant.Laundry
 
 /**
  * While Home is on screen, Input opens Home's Inputs menu and Settings opens the TV's full Settings.
@@ -26,6 +27,7 @@ class KeyService : AccessibilityService() {
     private lateinit var prefs: Prefs
     private var inputScancode = 0
     private var settingsScancode = 0
+    private var laundry: Laundry? = null
 
     override fun onServiceConnected() {
         prefs = Prefs(this)
@@ -33,9 +35,11 @@ class KeyService : AccessibilityService() {
         settingsScancode = TvConfig.settingsScancode(this)
         instance = this
         applyFilter()
+        laundry = Laundry(this).also { it.start() }
     }
 
     override fun onDestroy() {
+        laundry?.stop()
         if (instance === this) instance = null
         super.onDestroy()
     }

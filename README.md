@@ -5,8 +5,8 @@ ADB. Everything is reversible: nothing is rooted, flashed or uninstalled.
 
 ![Dot on a Sony BRAVIA](./docs/screenshot.jpg)
 
-**Dot** (`launchers/dot`) is the first one: an LED dot-matrix home screen with an endless app wheel, the
-time and weather, a slowly breathing background, and seasonal themes.
+**Dot** (`launchers/dot`) is an LED dot-matrix home screen with an app wheel, weather, seasonal themes
+and optional Home Assistant integrations.
 
 ## Getting started
 
@@ -28,15 +28,9 @@ off again.
 
 ## Settings
 
-Each TV has a folder in `tvs/`. Its `tv.properties` holds everything specific to that TV: apps to hide,
-the Live TV app, remote button codes, and the weather fallback city. Copy a folder to add another TV.
-
-- **Birthdays:** add `birthdays=Name:MM-DD,Name:MM-DD` to the TV's `personal.properties` (gitignored).
-- **Lights:** add `ha_url`, `ha_token` (a Home Assistant long-lived access token) and `ha_lights` to the same
-  file. The lights by the TV then take on each app's colour as you spin the wheel, and fade back when you open
-  one or turn the TV off.
-- **On the TV:** hold OK on any app for Home screen settings: show or hide apps, preview a theme, burn-in care.
-- After changing a file, run `./install.sh tvs/<tv>` again.
+Each TV has a folder in `tvs/`: `tv.properties` for the TV itself, and a gitignored `personal.properties`
+for birthdays and Home Assistant (see `personal.properties.example`). Run `./install.sh tvs/<tv>` after
+changing either. On the TV, hold OK on any app for Home screen settings.
 
 ## Undo
 

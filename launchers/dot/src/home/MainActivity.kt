@@ -21,6 +21,7 @@ import dev.mrrosoff.tv.dot.data.Occasions
 import dev.mrrosoff.tv.dot.data.Prefs
 import dev.mrrosoff.tv.dot.data.TvConfig
 import dev.mrrosoff.tv.dot.dots.DotFieldView
+import dev.mrrosoff.tv.dot.homeassistant.Lights
 import dev.mrrosoff.tv.dot.remote.KeyService
 
 /** Home: the app wheel on the left, [InfoPanel] on the right. Hold OK on the wheel for Home screen settings. */
@@ -32,7 +33,7 @@ class MainActivity : Activity(), WheelView.Listener {
     private lateinit var info: InfoPanel
     private lateinit var inputs: InputsMenu
     private lateinit var ambience: Ambience
-    private lateinit var lights: RoomLights
+    private lateinit var lights: Lights
     private val handler = Handler(Looper.getMainLooper())
 
     private var apps: List<App> = emptyList()
@@ -50,7 +51,7 @@ class MainActivity : Activity(), WheelView.Listener {
             this, prefs, handler, findViewById(R.id.glow),
             listOf<View>(wheel, findViewById(R.id.glow), findViewById(R.id.info)),
         )
-        lights = RoomLights(this)
+        lights = Lights(this)
         previewFrom(intent)
 
         wheel.listener = this

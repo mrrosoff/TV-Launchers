@@ -30,6 +30,7 @@ android {
         resValue 'string', 'birthdays', personal.getProperty('birthdays', '')
         resValue 'string', 'ha_url', personal.getProperty('ha_url', '')
         resValue 'string', 'ha_token', personal.getProperty('ha_token', '')
+        resValue 'string', 'ha_laundry', personal.getProperty('ha_laundry', '').replaceAll('\\s', '')
         resValue 'string', 'ha_lights', personal.getProperty('ha_lights', '').replaceAll('\\s', '')
         resValue 'string', 'tv_live_tv_package', tv.getProperty('live_tv_package', '')
         resValue 'string', 'tv_hidden_apps', tv.getProperty('hidden_apps', '').replaceAll('\\s', '')

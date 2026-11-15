@@ -1,7 +1,10 @@
 # Copy to personal.properties (gitignored) and fill in. Format: Name:MM-DD, comma-separated.
 birthdays=Alex:01-31,Sam:12-02
 
-# Optional: Home Assistant lights that follow the wheel. The token is a long-lived access token.
-# ha_url=http://homeassistant.local:8123
+# Optional: Home Assistant, with a long-lived access token. Then any of the integrations below.
+# ha_url=http://192.168.1.20:8123
 # ha_token=
+# Lights: tinted in the selected app's colour while the wheel spins.
 # ha_lights=light.tv_left,light.tv_right
+# Laundry: a flag on screen when one of these sensors turns "done".
+# ha_laundry=sensor.washer_status,sensor.dryer_status
