@@ -12,6 +12,10 @@ object TvConfig {
     fun hiddenApps(context: Context): Set<String> =
         context.getString(R.string.tv_hidden_apps).split(',').filter { it.isNotBlank() }.toSet()
 
+    /** Apps for films, where the dryer's banner waits until something else is on. */
+    fun movieApps(context: Context): Set<String> =
+        context.getString(R.string.tv_movie_apps).split(',').filter { it.isNotBlank() }.toSet()
+
     fun inputScancode(context: Context): Int = context.resources.getInteger(R.integer.tv_input_scancode)
 
     fun settingsScancode(context: Context): Int = context.resources.getInteger(R.integer.tv_settings_scancode)

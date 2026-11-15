@@ -28,6 +28,8 @@ class KeyService : AccessibilityService() {
     private var inputScancode = 0
     private var settingsScancode = 0
     private var laundry: Laundry? = null
+    private var foreground: String? = null
+    private val launchable = mutableMapOf<String, Boolean>()
 
     override fun onServiceConnected() {
         prefs = Prefs(this)
@@ -76,7 +78,16 @@ class KeyService : AccessibilityService() {
 
     private fun matches(event: KeyEvent, scancode: Int) = scancode != 0 && event.scanCode == scancode
 
-    override fun onAccessibilityEvent(event: AccessibilityEvent?) = Unit
+    /** Tells Laundry which app is in front; windows from apps with no TV launcher (volume, dialogs) don't count. */
+    override fun onAccessibilityEvent(event: AccessibilityEvent?) {
+        if (event?.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
+        val pkg = event.packageName?.toString() ?: return
+        if (pkg == foreground) return
+        val isApp = launchable.getOrPut(pkg) { packageManager.getLeanbackLaunchIntentForPackage(pkg) != null }
+        if (!isApp) return
+        foreground = pkg
+        laundry?.appChanged(pkg)
+    }
 
     override fun onInterrupt() = Unit
 

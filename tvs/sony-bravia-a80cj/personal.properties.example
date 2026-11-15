@@ -6,5 +6,6 @@ birthdays=Alex:01-31,Sam:12-02
 # ha_token=
 # Lights: tinted in the selected app's colour while the wheel spins.
 # ha_lights=light.tv_left,light.tv_right
-# Laundry: a flag on screen when one of these sensors turns "done".
-# ha_laundry=sensor.washer_status,sensor.dryer_status
+# Laundry: a banner when one of these sensors turns "done".
+# ha_washer=sensor.washer_status
+# ha_dryer=sensor.dryer_status
