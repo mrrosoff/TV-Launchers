@@ -7,6 +7,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
@@ -16,6 +17,7 @@ import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.TimeSource
 
@@ -87,8 +89,10 @@ class Lights private constructor(context: Context) {
         }
         if (wantMovie && !dimmed && movieLights.isNotEmpty()) dimmed = dim()
         if (color != null && color != sentColor && wheelLights.isNotEmpty()) {
-            tint(color)
-            sentColor = color
+            delay(TINT_DELAY)
+            val latest = wantColor ?: return
+            tint(latest)
+            sentColor = latest
         }
     }
 
@@ -148,7 +152,8 @@ class Lights private constructor(context: Context) {
     companion object {
         private const val WHEEL_SCENE = "scene.dot_before_preview"
         private const val MOVIE_SCENE = "scene.dot_before_movie"
-        private const val TINT_S = 0.15
+        private const val TINT_S = 0.3
+        private val TINT_DELAY = 150.milliseconds
         private const val TINT_DIM = 0.6
         private const val RESTORE_S = 1.5
         private const val MOVIE_S = 3.0
