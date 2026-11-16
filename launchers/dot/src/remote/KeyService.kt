@@ -2,9 +2,12 @@ package dev.mrrosoff.tv.dot.remote
 
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.AccessibilityServiceInfo
+import android.content.BroadcastReceiver
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
+import android.os.PowerManager
 import android.provider.Settings
 import android.view.KeyEvent
 import android.view.accessibility.AccessibilityEvent
@@ -12,7 +15,9 @@ import dev.mrrosoff.tv.dot.data.Inputs
 import dev.mrrosoff.tv.dot.data.Prefs
 import dev.mrrosoff.tv.dot.data.TvConfig
 import dev.mrrosoff.tv.dot.home.MainActivity
+import dev.mrrosoff.tv.dot.home.registerSystemReceiver
 import dev.mrrosoff.tv.dot.homeassistant.Laundry
+import dev.mrrosoff.tv.dot.homeassistant.Lights
 
 /**
  * While Home is on screen, Input opens Home's Inputs menu and Settings opens the TV's full Settings.
@@ -30,6 +35,7 @@ class KeyService : AccessibilityService() {
     private var laundry: Laundry? = null
     private var foreground: String? = null
     private val launchable = mutableMapOf<String, Boolean>()
+    private var movieApps = emptySet<String>()
 
     override fun onServiceConnected() {
         prefs = Prefs(this)
@@ -37,10 +43,16 @@ class KeyService : AccessibilityService() {
         settingsScancode = TvConfig.settingsScancode(this)
         instance = this
         applyFilter()
+        movieApps = TvConfig.movieApps(this)
         laundry = Laundry(this).also { it.start() }
+        registerSystemReceiver(screen, IntentFilter().apply {
+            addAction(Intent.ACTION_SCREEN_ON)
+            addAction(Intent.ACTION_SCREEN_OFF)
+        })
     }
 
     override fun onDestroy() {
+        runCatching { unregisterReceiver(screen) }
         laundry?.stop()
         if (instance === this) instance = null
         super.onDestroy()
@@ -86,7 +98,18 @@ class KeyService : AccessibilityService() {
         val isApp = launchable.getOrPut(pkg) { packageManager.getLeanbackLaunchIntentForPackage(pkg) != null }
         if (!isApp) return
         foreground = pkg
-        laundry?.appChanged(pkg)
+        movieChanged()
+    }
+
+    private val screen = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) = movieChanged()
+    }
+
+    /** A movie is on when one of tv.properties' movie_apps is in front and the screen is on. */
+    private fun movieChanged() {
+        val movie = foreground in movieApps && getSystemService(PowerManager::class.java).isInteractive
+        laundry?.movieChanged(movie)
+        Lights.get(this).movie(movie)
     }
 
     override fun onInterrupt() = Unit

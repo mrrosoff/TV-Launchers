@@ -2,5 +2,6 @@
     <color name="text">#FFFFFFFF</color>
     <color name="text_faint">#99FFFFFF</color>
     <color name="accent">#FFE8DCC8</color>
+    <color name="overdue">#FFFF6B5E</color>
     <color name="panel">#F7121214</color>
 </resources>

@@ -13,9 +13,12 @@ Optional. Set `ha_url` and `ha_token` (a long-lived access token) in the TV's `p
 
 - **Lights:** `ha_lights=light.a,light.b` tints them in each app's colour while the wheel spins, and fades
   them back when an app opens or the TV turns off.
+- **Movie mode:** `ha_movie_lights` dim to 30% while one of `tv.properties`' `movie_apps` is on, and fade
+  back when you leave it or turn the TV off.
 - **Laundry:** `ha_washer` and `ha_dryer` (sensors that turn `done`) show a five-second banner over any app.
   A washer finishing while the dryer runs waits, and becomes "Laundry done" when the dryer finishes. The
-  dryer's own banner waits while one of `tv.properties`' `movie_apps` is on.
+  dryer's own banner waits while one of `tv.properties`' `movie_apps` is on. While a machine runs, Home shows
+  the time left under the weather, from the same entities as Muni-Display.
 
 New integrations go in `src/homeassistant/`.
 

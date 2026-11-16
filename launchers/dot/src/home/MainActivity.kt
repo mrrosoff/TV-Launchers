@@ -33,8 +33,7 @@ class MainActivity : Activity(), WheelView.Listener {
     private lateinit var info: InfoPanel
     private lateinit var inputs: InputsMenu
     private lateinit var ambience: Ambience
-    private lateinit var lights: Lights
-    private val handler = Handler(Looper.getMainLooper())
+        private val handler = Handler(Looper.getMainLooper())
 
     private var apps: List<App> = emptyList()
     private var brandColors = IntArray(0)
@@ -51,7 +50,6 @@ class MainActivity : Activity(), WheelView.Listener {
             this, prefs, handler, findViewById(R.id.glow),
             listOf<View>(wheel, findViewById(R.id.glow), findViewById(R.id.info)),
         )
-        lights = Lights(this)
         previewFrom(intent)
 
         wheel.listener = this
@@ -78,7 +76,7 @@ class MainActivity : Activity(), WheelView.Listener {
         super.onResume()
         KeyService.ensureEnabled(this)
         KeyService.setHomeVisible(true)
-        lights.prepare()
+        Lights.get(this).prepare()
         info.setVisible(true)
         field.running = true
         // Back from an app: the wheel starts on the app last opened.
@@ -89,7 +87,7 @@ class MainActivity : Activity(), WheelView.Listener {
     }
 
     override fun onPause() {
-        lights.restore()
+        Lights.get(this).restore()
         KeyService.setHomeVisible(false)
         info.setVisible(false)
         field.running = false
@@ -106,7 +104,6 @@ class MainActivity : Activity(), WheelView.Listener {
         unregisterReceiver(packageReceiver)
         prefs.unregister(prefsListener)
         handler.removeCallbacksAndMessages(null)
-        lights.destroy()
         info.destroy()
         super.onDestroy()
     }
@@ -134,7 +131,7 @@ class MainActivity : Activity(), WheelView.Listener {
     override fun onSelected(app: App, index: Int, byUser: Boolean) {
         val color = brandColors.getOrElse(index) { 0xFFFFFFFF.toInt() }
         ambience.glowTo(color)
-        if (byUser) lights.preview(color)
+        if (byUser) Lights.get(this).preview(color)
     }
 
     override fun onOpen(app: App) {

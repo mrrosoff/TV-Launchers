@@ -61,6 +61,17 @@ class HomeAssistant private constructor(context: Context) {
         }.status.isSuccess()
     }.getOrDefault(false)
 
+    /** Renders a Jinja template on Home Assistant. */
+    suspend fun template(template: String): String? = runCatching {
+        val response = client.post("$url/api/template") {
+            bearerAuth(token)
+            contentType(ContentType.Application.Json)
+            setBody(buildJsonObject { put("template", template) }.toString())
+            timeout { requestTimeoutMillis = TIMEOUT_MS }
+        }
+        if (response.status.isSuccess()) response.bodyAsText() else null
+    }.getOrNull()
+
     /** Runs [onFire] with the trigger's variables each time [trigger] fires; returns when the connection drops. */
     suspend fun subscribe(trigger: JsonObject, onFire: suspend (JsonObject) -> Unit) {
         runCatching {

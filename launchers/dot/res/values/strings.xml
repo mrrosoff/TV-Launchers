@@ -30,4 +30,7 @@
     <string name="settings_key">Gear button: Settings</string>
     <string name="default_home">Default home app</string>
     <string name="apps_header">Apps in the list</string>
+    <string name="laundry_running">%1$s running</string>
+    <string name="laundry_left">%1$s %2$d min left</string>
+    <string name="laundry_over">%1$s %2$d min over</string>
 </resources>

@@ -9,6 +9,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.intOrNull
@@ -18,60 +19,81 @@ import kotlinx.serialization.json.put
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.TimeSource
 
-/** Lights integration: tints ha_lights in the selected app's colour while the wheel spins, and fades them back. */
-class Lights(context: Context) {
-
-    private sealed interface Command {
-        data object Check : Command
-        data class Tint(val color: Int) : Command
-        data object Restore : Command
-        data object Close : Command
-    }
+/**
+ * Lights integration:
+ * - Wheel: ha_lights take the selected app's colour while the wheel spins, and fade back when Home goes.
+ * - Movie mode: ha_movie_lights dim while one of tv.properties' movie_apps is in front, and fade back after.
+ *
+ * Callers set what they want; one worker brings the lights there, so quick changes never cross.
+ */
+class Lights private constructor(context: Context) {
 
     private val ha = HomeAssistant.get(context)
-    private val lights = context.getString(R.string.ha_lights).split(',').map { it.trim() }.filter { it.isNotEmpty() }
-    private val enabled = ha.enabled && lights.isNotEmpty()
+    private val wheelLights = list(context, R.string.ha_lights)
+    private val movieLights = list(context, R.string.ha_movie_lights)
 
-    private val commands = Channel<Command>(Channel.CONFLATED)
+    private val wake = Channel<Unit>(Channel.CONFLATED)
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
+    @Volatile private var wantColor: Int? = null
+    @Volatile private var wantMovie = false
+    @Volatile private var wantCheck = false
+
+    private var tinting: List<String>? = null
+    private var sentColor: Int? = null
+    private var dimmed = false
     private var onLights = emptyList<String>()
     private var brightness = 255
     private var checkedAt: TimeSource.Monotonic.ValueTimeMark? = null
-    private var tinting: List<String>? = null
 
     init {
-        if (enabled) scope.launch {
-            for (command in commands) {
-                runCatching { handle(command) }
-                if (command == Command.Close) break
-            }
+        if (ha.enabled) scope.launch {
+            for (signal in wake) runCatching { settle() }
         }
     }
 
-    fun prepare() = send(Command.Check)
+    /** Home is on screen: learn which wheel lights are on, so the first tint goes out at once. */
+    fun prepare() = want { wantCheck = true }
 
-    fun preview(color: Int) = send(Command.Tint(color))
+    fun preview(color: Int) = want { wantColor = color }
 
-    fun restore() = send(Command.Restore)
+    fun restore() = want { wantColor = null }
 
-    fun destroy() = send(Command.Close)
-
-    private fun send(command: Command) {
-        if (enabled) commands.trySend(command)
+    fun movie(on: Boolean) = want {
+        wantMovie = on
+        if (on) wantColor = null
     }
 
-    private suspend fun handle(command: Command) {
-        when (command) {
-            Command.Check -> checkLights()
-            is Command.Tint -> tint(command.color)
-            Command.Restore -> restoreNow()
-            Command.Close -> restoreNow()
+    private fun want(change: () -> Unit) {
+        if (!ha.enabled) return
+        change()
+        wake.trySend(Unit)
+    }
+
+    private suspend fun settle() {
+        if (wantCheck) {
+            wantCheck = false
+            checkWheelLights()
+        }
+        if (dimmed && !wantMovie) {
+            ha.service("scene", "turn_on", scene(MOVIE_SCENE, MOVIE_S))
+            dimmed = false
+        }
+        val color = wantColor
+        if (color == null && tinting != null) {
+            if (tinting!!.isNotEmpty()) ha.service("scene", "turn_on", scene(WHEEL_SCENE, RESTORE_S))
+            tinting = null
+            sentColor = null
+        }
+        if (wantMovie && !dimmed && movieLights.isNotEmpty()) dimmed = dim()
+        if (color != null && color != sentColor && wheelLights.isNotEmpty()) {
+            tint(color)
+            sentColor = color
         }
     }
 
     private suspend fun tint(color: Int) {
-        val on = tinting ?: snapshot().also { tinting = it }
+        val on = tinting ?: snapshotWheel().also { tinting = it }
         if (on.isEmpty()) return
         ha.service("light", "turn_on", buildJsonObject {
             put("entity_id", JsonArray(on.map(::JsonPrimitive)))
@@ -81,48 +103,64 @@ class Lights(context: Context) {
         })
     }
 
-    private suspend fun restoreNow() {
-        if (!tinting.isNullOrEmpty()) {
-            ha.service("scene", "turn_on", buildJsonObject {
-                put("entity_id", SCENE)
-                put("transition", RESTORE_S)
-            })
-        }
-        tinting = null
+    private suspend fun snapshotWheel(): List<String> {
+        if (checkedAt.let { it == null || it.elapsedNow() > STALE }) checkWheelLights()
+        val on = onLights
+        if (on.isEmpty() || !save(WHEEL_SCENE, on)) return emptyList()
+        return on
     }
 
-    private suspend fun checkLights() {
-        val on = lights.mapNotNull { id -> state(id)?.takeIf { it.state == "on" }?.let { id to it } }
+    private suspend fun checkWheelLights() {
+        val on = wheelLights.mapNotNull { id -> ha.state(id)?.takeIf { it.isOn() }?.let { id to it } }
         onLights = on.map { it.first }
-        on.mapNotNull { it.second.brightness }.takeIf { it.isNotEmpty() }?.let { brightness = it.average().toInt() }
+        on.mapNotNull { it.second.brightness() }.takeIf { it.isNotEmpty() }?.let { brightness = it.average().toInt() }
         checkedAt = TimeSource.Monotonic.markNow()
     }
 
-    private suspend fun snapshot(): List<String> {
-        if (checkedAt.let { it == null || it.elapsedNow() > STALE }) checkLights()
-        val on = onLights
-        if (on.isEmpty()) return on
-        val saved = ha.service("scene", "create", buildJsonObject {
-            put("scene_id", SCENE.removePrefix("scene."))
-            put("snapshot_entities", JsonArray(on.map(::JsonPrimitive)))
-        })
-        return if (saved) on else emptyList()
+    /** Each movie light that is on and dimmable goes to [MOVIE_DIM] of its brightness; false if none did. */
+    private suspend fun dim(): Boolean {
+        val on = movieLights.mapNotNull { id -> ha.state(id)?.takeIf { it.isOn() }?.brightness()?.let { id to it } }
+        if (on.isEmpty() || !save(MOVIE_SCENE, on.map { it.first })) return false
+        for ((id, level) in on) {
+            ha.service("light", "turn_on", buildJsonObject {
+                put("entity_id", id)
+                put("brightness", (level * MOVIE_DIM).toInt().coerceAtLeast(1))
+                put("transition", MOVIE_S)
+            })
+        }
+        return true
     }
 
-    private class LightState(val state: String?, val brightness: Int?)
+    private suspend fun save(scene: String, entities: List<String>) = ha.service("scene", "create", buildJsonObject {
+        put("scene_id", scene.removePrefix("scene."))
+        put("snapshot_entities", JsonArray(entities.map(::JsonPrimitive)))
+    })
 
-    private suspend fun state(entity: String): LightState? = ha.state(entity)?.let { json ->
-        LightState(
-            json["state"]?.jsonPrimitive?.content,
-            json["attributes"]?.jsonObject?.get("brightness")?.jsonPrimitive?.intOrNull,
-        )
+    private fun scene(id: String, transition: Double) = buildJsonObject {
+        put("entity_id", id)
+        put("transition", transition)
     }
 
-    private companion object {
-        const val SCENE = "scene.dot_before_preview"
-        const val TINT_S = 0.15
-        const val TINT_DIM = 0.6
-        const val RESTORE_S = 1.5
-        val STALE = 1.minutes
+    private fun JsonObject.isOn() = this["state"]?.jsonPrimitive?.content == "on"
+
+    private fun JsonObject.brightness() = this["attributes"]?.jsonObject?.get("brightness")?.jsonPrimitive?.intOrNull
+
+    companion object {
+        private const val WHEEL_SCENE = "scene.dot_before_preview"
+        private const val MOVIE_SCENE = "scene.dot_before_movie"
+        private const val TINT_S = 0.15
+        private const val TINT_DIM = 0.6
+        private const val RESTORE_S = 1.5
+        private const val MOVIE_S = 3.0
+        private const val MOVIE_DIM = 0.3
+        private val STALE = 1.minutes
+
+        @Volatile private var shared: Lights? = null
+
+        fun get(context: Context): Lights =
+            shared ?: synchronized(this) { shared ?: Lights(context.applicationContext).also { shared = it } }
+
+        private fun list(context: Context, id: Int) =
+            context.getString(id).split(',').map { it.trim() }.filter { it.isNotEmpty() }
     }
 }

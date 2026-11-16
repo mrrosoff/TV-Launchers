@@ -11,6 +11,7 @@ import android.os.Handler
 import android.text.format.DateFormat
 import android.view.View
 import android.widget.ImageView
+import android.widget.LinearLayout
 import dev.mrrosoff.tv.dot.R
 import dev.mrrosoff.tv.dot.data.Occasion
 import dev.mrrosoff.tv.dot.data.Occasions
@@ -18,12 +19,16 @@ import dev.mrrosoff.tv.dot.data.Prefs
 import dev.mrrosoff.tv.dot.data.Weather
 import dev.mrrosoff.tv.dot.dots.DotTextView
 import dev.mrrosoff.tv.dot.dots.ParticleView
+import dev.mrrosoff.tv.dot.homeassistant.LaundryProgress
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import java.util.Calendar
 import java.util.Date
 import java.util.concurrent.Executors
 
 /**
- * The right side of Home: clock, date and the weather now, and on themed days a
+ * The right side of Home: clock, date, the weather now, laundry in progress, and on themed days a
  * greeting with its emblem, the corner glow and the ambient particles.
  */
 class InfoPanel(
@@ -42,6 +47,8 @@ class InfoPanel(
     private val condition: DotTextView = activity.findViewById(R.id.condition)
     private val particles: ParticleView = activity.findViewById(R.id.particles)
     private val occasionGlow: View = activity.findViewById(R.id.occasion_glow)
+    private val laundry: LinearLayout = activity.findViewById(R.id.laundry)
+    private var scope = MainScope()
 
     private val background = Executors.newSingleThreadExecutor()
     private var occasion: Occasion? = null
@@ -62,11 +69,14 @@ class InfoPanel(
         })
         showWeather(Weather.cached(prefs))
         refreshWeather()
+        scope = MainScope()
+        scope.launch { LaundryProgress.runs.collect { showLaundry() } }
     }
 
     fun stop() {
         activity.unregisterReceiver(clockReceiver)
         handler.removeCallbacks(weatherRefresh)
+        scope.cancel()
     }
 
     fun destroy() = background.shutdownNow()
@@ -116,6 +126,28 @@ class InfoPanel(
         clock.text = DateFormat.getTimeFormat(activity).format(now)
         val pattern = DateFormat.getBestDateTimePattern(activity.resources.configuration.locales[0], "EEEEMMMMd")
         date.text = DateFormat.format(pattern, now).toString().replace(",", "")
+        showLaundry()
+    }
+
+    /** "Dryer 35 min left", or "12 min over" (red from 10 over), for each machine running. */
+    private fun showLaundry() {
+        val runs = LaundryProgress.runs.value
+        laundry.removeAllViews()
+        laundry.visibility = if (runs.isEmpty()) View.GONE else View.VISIBLE
+        val now = System.currentTimeMillis()
+        for (run in runs) {
+            val left = run.minutesLeft(now)
+            laundry.addView(DotTextView(activity).apply {
+                pitch = activity.dp(2.4f)
+                setPadding(0, activity.dp(6f).toInt(), 0, 0)
+                text = when {
+                    left == null -> activity.getString(R.string.laundry_running, run.name)
+                    left >= 0 -> activity.getString(R.string.laundry_left, run.name, left)
+                    else -> activity.getString(R.string.laundry_over, run.name, -left)
+                }
+                color = activity.getColor(if (left != null && left <= -OVERDUE_MIN) R.color.overdue else R.color.text_faint)
+            })
+        }
     }
 
     private fun showWeather(now: Weather.Now?) {
@@ -141,5 +173,6 @@ class InfoPanel(
 
     private companion object {
         const val WEATHER_CHECK_MS = 10 * 60 * 1000L
+        const val OVERDUE_MIN = 10
     }
 }
