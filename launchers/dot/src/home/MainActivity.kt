@@ -33,7 +33,10 @@ class MainActivity : Activity(), WheelView.Listener {
     private lateinit var info: InfoPanel
     private lateinit var inputs: InputsMenu
     private lateinit var ambience: Ambience
-        private val handler = Handler(Looper.getMainLooper())
+    private lateinit var idle: IdleMode
+    private val handler = Handler(Looper.getMainLooper())
+    /** The key that woke Home from idle, swallowed until it's released. */
+    private var wakeKey = -1
 
     private var apps: List<App> = emptyList()
     private var brandColors = IntArray(0)
@@ -46,10 +49,12 @@ class MainActivity : Activity(), WheelView.Listener {
         field = findViewById(R.id.dot_field)
         info = InfoPanel(this, prefs, handler)
         inputs = InputsMenu(this, findViewById(R.id.inputs_panel), findViewById(R.id.inputs_list), wheel)
-        ambience = Ambience(
-            this, prefs, handler, findViewById(R.id.glow),
-            listOf<View>(wheel, findViewById(R.id.glow), findViewById(R.id.info)),
-        )
+        val glow = findViewById<View>(R.id.glow)
+        ambience = Ambience(this, prefs, handler, glow, listOf(wheel, glow, findViewById(R.id.info)))
+        idle = IdleMode(
+            this, handler, field, wheel, glow, findViewById(R.id.clock),
+            listOf(R.id.occasion, R.id.date, R.id.weather, R.id.laundry).map { findViewById<View>(it) },
+        ) { wheel.hasFocus() && !inputs.isOpen }
         previewFrom(intent)
 
         wheel.listener = this
@@ -79,6 +84,7 @@ class MainActivity : Activity(), WheelView.Listener {
         Lights.get(this).prepare()
         info.setVisible(true)
         field.running = true
+        idle.touch()
         // Back from an app: the wheel starts on the app last opened.
         if (!inputs.isOpen) {
             wheel.select(lastUsedIndex(), animate = false)
@@ -87,6 +93,7 @@ class MainActivity : Activity(), WheelView.Listener {
     }
 
     override fun onPause() {
+        idle.stop()
         Lights.get(this).restore()
         KeyService.setHomeVisible(false)
         info.setVisible(false)
@@ -118,6 +125,21 @@ class MainActivity : Activity(), WheelView.Listener {
         inputs.close()
         wheel.select(lastUsedIndex(), animate = true)
         wheel.requestFocus()
+    }
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (event.keyCode in PASS_THROUGH) return super.dispatchKeyEvent(event)
+        if (event.keyCode == wakeKey) {
+            if (event.action == KeyEvent.ACTION_UP) wakeKey = -1
+            return true
+        }
+        if (idle.idle && event.action == KeyEvent.ACTION_DOWN) {
+            wakeKey = event.keyCode
+            idle.wake()
+            return true
+        }
+        idle.touch()
+        return super.dispatchKeyEvent(event)
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
@@ -185,5 +207,7 @@ class MainActivity : Activity(), WheelView.Listener {
         /** Sent by KeyService for the remote's Input button. */
         const val ACTION_SHOW_INPUTS = "dev.mrrosoff.tv.dot.SHOW_INPUTS"
         private const val EXTRA_PREVIEW_THEME = "preview_theme"
+        /** Volume and mute work as usual, and don't wake Home. */
+        private val PASS_THROUGH = setOf(KeyEvent.KEYCODE_VOLUME_UP, KeyEvent.KEYCODE_VOLUME_DOWN, KeyEvent.KEYCODE_VOLUME_MUTE)
     }
 }

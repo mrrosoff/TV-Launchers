@@ -5,6 +5,7 @@ An LED dot-matrix home screen for Android TV / Google TV. Kotlin, Android 8 and 
 - **Wheel:** apps on an endless arc in their brand colours. Up/Down spin, OK opens, hold OK for settings.
 - **Time and weather:** from Open-Meteo, located by IP.
 - **Remote:** on Home, Input opens an Inputs menu and the gear opens Settings.
+- **Idle:** after 90 seconds untouched, everything but the clock fades and the clock moves to the middle.
 - **Background and themes:** a slow dot-grid wave, burn-in drift, and seasonal themes (`src/data/Occasions.kt`).
 
 ## Home Assistant

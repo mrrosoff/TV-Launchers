@@ -17,6 +17,7 @@ import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
+import kotlin.math.abs
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.TimeSource
@@ -91,20 +92,31 @@ class Lights private constructor(context: Context) {
         if (color != null && color != sentColor && wheelLights.isNotEmpty()) {
             delay(TINT_DELAY)
             val latest = wantColor ?: return
-            tint(latest)
+            tint(latest, sentColor)
             sentColor = latest
         }
     }
 
-    private suspend fun tint(color: Int) {
+    private suspend fun tint(color: Int, from: Int?) {
         val on = tinting ?: snapshotWheel().also { tinting = it }
         if (on.isEmpty()) return
+        // Hue fades in a straight line across the colour chart, which between distant colours runs through
+        // white; those switch at once instead.
+        val transition = if (from != null && farApart(from, color)) 0.0 else TINT_S
         ha.service("light", "turn_on", buildJsonObject {
             put("entity_id", JsonArray(on.map(::JsonPrimitive)))
             put("rgb_color", JsonArray(listOf(Color.red(color), Color.green(color), Color.blue(color)).map(::JsonPrimitive)))
             put("brightness", (brightness * TINT_DIM).toInt().coerceAtLeast(1))
-            put("transition", TINT_S)
+            put("transition", transition)
         })
+    }
+
+    private fun farApart(a: Int, b: Int): Boolean {
+        val ha = FloatArray(3).also { Color.colorToHSV(a, it) }
+        val hb = FloatArray(3).also { Color.colorToHSV(b, it) }
+        if (ha[1] < SATURATED || hb[1] < SATURATED) return false
+        val d = abs(ha[0] - hb[0]).let { minOf(it, 360f - it) }
+        return d > FAR_HUE
     }
 
     private suspend fun snapshotWheel(): List<String> {
@@ -155,6 +167,8 @@ class Lights private constructor(context: Context) {
         private const val TINT_S = 0.3
         private val TINT_DELAY = 150.milliseconds
         private const val TINT_DIM = 0.6
+        private const val SATURATED = 0.3f
+        private const val FAR_HUE = 60f
         private const val RESTORE_S = 1.5
         private const val MOVIE_S = 3.0
         private const val MOVIE_DIM = 0.3

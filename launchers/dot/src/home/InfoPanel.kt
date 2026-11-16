@@ -50,6 +50,10 @@ class InfoPanel(
     private val laundry: LinearLayout = activity.findViewById(R.id.laundry)
     private var scope = MainScope()
 
+    init {
+        clock.morph = true
+    }
+
     private val background = Executors.newSingleThreadExecutor()
     private var occasion: Occasion? = null
     private var occasionDay = -1
