@@ -54,6 +54,29 @@ a factory reset (**Settings → System → About → Reset**) undoes everything,
   Dot ships no voice search of its own.
 - **Screensaver and standby:** Google TV's ambient screensaver starts after 10 minutes idle and the TV goes to
   standby after 30, with the new launcher as Home.
+- **Screensaver albums:** Ambient mode shows Google Photos albums, but its album picker needs Google's launcher.
+  With `launcherx` off, **Adjust albums** closes before it draws, and the Google Home app can't find the TV
+  because `setupwraith` is off too. To change albums, turn both on for a few minutes:
+
+  ```sh
+  tv() { TV_HOST=<tv ip> tools/venv/bin/python -I tools/tv.py "$@"; }
+  tv pm enable com.google.android.apps.tv.launcherx
+  tv pm enable com.google.android.tungsten.setupwraith
+  ```
+
+  Then on the TV go to **Settings → System → Ambient mode → Adjust albums**. It may ask for your Google
+  password, and the first few tries can fail with "Unable to load content"; keep retrying. The choice is saved
+  to the Google account, so it stays after both are turned off again. Don't press Home meanwhile: it opens
+  Google's launcher instead of Dot. Then turn both off and make Dot Home again:
+
+  ```sh
+  tv pm disable-user --user 0 com.google.android.apps.tv.launcherx
+  tv pm disable-user --user 0 com.google.android.tungsten.setupwraith
+  tv cmd package set-home-activity --user 0 dev.mrrosoff.tv.dot/.home.MainActivity
+  tv input keyevent KEYCODE_HOME
+  ```
+
+  Photos added to a chosen album appear without any of this; only changing which albums needs it.
 
 ## Home screen and root
 
